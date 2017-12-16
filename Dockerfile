@@ -11,7 +11,7 @@ RUN ["yum", "install", "-y", "yum-utils", "device-mapper-persistent-data", "lvm2
 RUN ["wget", "http://it.apache.contactlab.it/spark/spark-2.2.0/spark-2.2.0-bin-hadoop2.7.tgz"]
 RUN ["tar", "xvf", "spark-2.2.0-bin-hadoop2.7.tgz" ]
 RUN ["wget", "http://it.apache.contactlab.it/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz"]
-RUN ["tar", "xvf", "hadoop-2.7.4/hadoop-2.7.4.tar.gz" ]
+RUN ["tar", "xvf", "hadoop-2.7.4.tar.gz" ]
 ENV SPARK_USER="root"
 ENV HADOOP_HOME="/opt/hadoop-2.7.4"
 ENV HADOOP_USER_NAME="root"
