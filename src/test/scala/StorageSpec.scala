@@ -10,10 +10,11 @@ class StorageSpec
     with Inspectors
     with BeforeAndAfterAll{
 
-  val storage : Storage = null
+  var storage : Storage = null
 
   override def beforeAll(): Unit = {
     super.beforeAll()
+    storage = Storage()
     storage.init()
   }
 
