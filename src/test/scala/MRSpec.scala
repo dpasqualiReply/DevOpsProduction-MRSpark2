@@ -3,6 +3,7 @@ import it.reply.pasquali.engine.MovieRecommender
 import it.reply.pasquali.storage.Storage
 import org.apache.spark.mllib.recommendation.Rating
 import org.scalatest._
+import sys.process._
 
 import scala.reflect.io.File
 
@@ -94,6 +95,8 @@ class MRSpec
   }
 
   it should "can be saved in zip format and retrieved" in {
+
+    "rm -rf m20Model" !
 
     mr.storeModel("m20Model")
     assert(File("m20Model").exists)
