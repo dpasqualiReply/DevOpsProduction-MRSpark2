@@ -10,7 +10,7 @@ resolvers ++= Seq(
 
 libraryDependencies ++= Seq(
   "org.scalatest" % "scalatest_2.11" % "2.2.2" % "test",
-  "org.apache.spark" % "spark-core_2.11" % "2.2.0".
+  "org.apache.spark" % "spark-core_2.11" % "2.2.0",
   "org.apache.spark" % "spark-sql_2.11" % "2.2.0",
   "org.apache.hadoop" % "hadoop-common" % "2.7.0" ,
   "org.apache.spark" % "spark-hive_2.11" % "2.2.0",
