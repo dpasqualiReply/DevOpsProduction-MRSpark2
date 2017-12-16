@@ -27,12 +27,12 @@ pipeline {
     stage('Build') {
       steps {
         sh 'sbt clean compile package'
-        archiveArtifacts 'target/scala-2.11/devopsproduction-mrspark2_2.11-0.1.jar'
+        archiveArtifacts 'target/*/*.jar'
       }
     }
     stage('Deploy') {
       steps {
-        sh 'sudo cp target/scala-2.11/devopsproduction-mrspark2_2.11-0.1.jar /opt/deploy/'
+        sh 'sudo cp target/*/*.jar /opt/deploy/'
       }
     }
   }
