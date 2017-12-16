@@ -18,6 +18,8 @@ class MRSpec
 
   override def beforeAll(): Unit = {
     super.beforeAll()
+    import org.apache.hadoop.security.UserGroupInformation
+    UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"))
   }
 
   override def afterAll(): Unit = {
