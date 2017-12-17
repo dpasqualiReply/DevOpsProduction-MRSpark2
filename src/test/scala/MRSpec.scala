@@ -96,16 +96,16 @@ class MRSpec
 
   it should "can be saved in zip format and retrieved" in {
 
-    mr.storeModel("m20Model")
-    assert(File("m20Model").exists)
+    mr.storeModel("testModel")
+    assert(File("testModel").exists)
     mr.model = null
 
     val storage = Storage()
-    storage.zipModel("m20Model", "m20Model.zip")
-    assert(File("m20Model.zip").exists)
+    storage.zipModel("testModel", "testModel.zip")
+    assert(File("testModel.zip").exists)
 
-    storage.unzipModel("m20Model.zip", "m20ModelUnzipped")
-    mr.loadModel("m20ModelUnzipped")
+    storage.unzipModel("testModel.zip", "testModelUz")
+    mr.loadModel("testModelUz")
     assert(mr.model != null)
   }
 
