@@ -96,8 +96,6 @@ class MRSpec
 
   it should "can be saved in zip format and retrieved" in {
 
-    "rm -rf m20Model" !
-
     mr.storeModel("m20Model")
     assert(File("m20Model").exists)
     mr.model = null

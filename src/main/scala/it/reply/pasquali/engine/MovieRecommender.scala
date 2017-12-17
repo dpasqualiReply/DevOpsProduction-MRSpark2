@@ -7,6 +7,8 @@ import org.apache.spark.sql.SparkSession
 
 import scala.reflect.io.File
 
+import sys.process._
+
 case class MovieRecommender() {
 
   var spark : SparkSession = null
@@ -66,7 +68,7 @@ case class MovieRecommender() {
   def storeModel(dirPath : String) : Unit = {
 
     if(File(dirPath).exists)
-      File(dirPath).delete()
+      s"rm -rd ${dirPath}" !
 
     model.save(sc, dirPath)
   }
