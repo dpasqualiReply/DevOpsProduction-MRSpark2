@@ -32,7 +32,7 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh 'sudo cp target/*/*.jar /opt/deploy/'
+        sh 'sudo cp target/*/*.jar /opt/deploy/mrSpark2'
       }
     }
   }
