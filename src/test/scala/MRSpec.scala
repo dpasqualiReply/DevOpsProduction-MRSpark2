@@ -1,11 +1,13 @@
 
+import java.io.File
+
+import com.typesafe.config.ConfigFactory
 import it.reply.data.pasquali.Storage
 import it.reply.data.pasquali.engine.MovieRecommender
 import org.apache.spark.mllib.recommendation.Rating
 import org.scalatest._
 
 import sys.process._
-import scala.reflect.io.File
 
 class MRSpec
   extends FlatSpec
@@ -29,6 +31,8 @@ class MRSpec
 
   "The movie recommender" must "be instantiated with given parameters" in {
 
+
+    val config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
     mr = MovieRecommender().initSpark("mr rdd test", "local[*]")
 
     assert(mr.spark != null)
@@ -96,12 +100,12 @@ class MRSpec
   it should "can be saved in zip format and retrieved" in {
 
     mr.storeModel("testModel")
-    assert(File("testModel").exists)
+    assert(new File("testModel").exists)
     mr.model = null
 
     val storage = Storage()
     storage.zipModel("testModel", "testModel.zip")
-    assert(File("testModel.zip").exists)
+    assert(new File("testModel.zip").exists)
 
     storage.unzipModel("testModel.zip", "testModelUz")
     mr.loadModel("testModelUz")

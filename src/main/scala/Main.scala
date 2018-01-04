@@ -1,4 +1,6 @@
 
+import java.io.File
+
 import com.typesafe.config.ConfigFactory
 import it.reply.data.pasquali.Storage
 import it.reply.data.pasquali.engine.MovieRecommender
@@ -27,7 +29,9 @@ object Main {
 
 
   def main(args: Array[String]): Unit = {
-    val configuration = ConfigFactory.load("BatchML")
+    //val configuration = ConfigFactory.load("BatchML")
+
+    val configuration = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
 
     SPARK_APPNAME = configuration.getString("bml.spark.app_name")
     SPARK_MASTER = configuration.getString("bml.spark.master")
