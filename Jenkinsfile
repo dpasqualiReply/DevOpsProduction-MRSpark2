@@ -9,7 +9,7 @@ pipeline {
         sh 'sudo yum install curl -y'
         sh 'sudo yum install java-1.8.0-openjdk -y'
         sh 'sudo wget -O sbt-0.13.12.rpm  http://dl.bintray.com/sbt/rpm/sbt-0.13.12.rpm'
-        sh 'sudo yum install sbt-0.13.12.rpm -y'
+        sh 'sudo yum localinstall sbt-0.13.12.rpm -y'
         //sh 'sudo wget http://mirror.nohup.it/apache/spark/spark-2.2.0/spark-2.2.0-bin-hadoop2.7.tgz'
       }
     }
