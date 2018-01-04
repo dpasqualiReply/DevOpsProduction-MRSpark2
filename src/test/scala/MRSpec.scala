@@ -114,6 +114,9 @@ class MRSpec
     val MODEL_PATH = config.getString("bml.recommender.model_path")
     val MODEL_ARCHIVE_PATH = config.getString("bml.recommender.model_archive_path")
 
+    println(s"MODEL PATH --->>> ${MODEL_PATH}")
+    println(s"MODEL ARCHIVE PATH --->>> ${MODEL_ARCHIVE_PATH}")
+
     if(new File(MODEL_PATH).exists())
     {
       Path(MODEL_PATH).deleteRecursively()
