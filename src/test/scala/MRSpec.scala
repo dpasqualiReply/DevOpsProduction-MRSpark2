@@ -33,7 +33,16 @@ class MRSpec
 
 
     val config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
-    mr = MovieRecommender().initSpark("mr rdd test", "local[*]")
+
+    val SPARK_APPNAME = config.getString("bml.spark.app_name")
+    val SPARK_MASTER = config.getString("bml.spark.master")
+    //val config = ConfigFactory.load("BatchML")
+
+    println("\n\n")
+    println(config)
+    println("\n\n")
+
+    mr = MovieRecommender().initSpark(SPARK_APPNAME, SPARK_MASTER)
 
     assert(mr.spark != null)
     assert(mr.spark.sparkContext.master == "local[*]")
