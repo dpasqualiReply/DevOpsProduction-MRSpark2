@@ -1,12 +1,13 @@
 
 import java.io.File
 
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config._
 import it.reply.data.pasquali.Storage
 import it.reply.data.pasquali.engine.MovieRecommender
 import org.apache.spark.mllib.recommendation.Rating
 import org.scalatest._
 
+import scala.reflect.io.Path
 import sys.process._
 
 class MRSpec
@@ -18,11 +19,15 @@ class MRSpec
     with BeforeAndAfterAll{
 
   var mr : MovieRecommender = null
+  var config : Config = null
 
   override def beforeAll(): Unit = {
     super.beforeAll()
     import org.apache.hadoop.security.UserGroupInformation
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"))
+
+    config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
+
   }
 
   override def afterAll(): Unit = {
@@ -31,11 +36,9 @@ class MRSpec
 
   "The movie recommender" must "be instantiated with given parameters" in {
 
-
-    val config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
-
     val SPARK_APPNAME = config.getString("bml.spark.app_name")
     val SPARK_MASTER = config.getString("bml.spark.master")
+
     //val config = ConfigFactory.load("BatchML")
 
     println("\n\n")
@@ -108,17 +111,38 @@ class MRSpec
 
   it should "can be saved in zip format and retrieved" in {
 
-    mr.storeModel("testModel")
-    assert(new File("testModel").exists)
+    val MODEL_PATH = config.getString("bml.recommender.model_path")
+    val MODEL_ARCHIVE_PATH = config.getString("bml.recommender.model_archive_path")
+
+    if(new File(MODEL_PATH).exists())
+    {
+      Path(MODEL_PATH).deleteRecursively()
+      println("[WARN] old model deleted")
+    }
+
+    if(new File(MODEL_ARCHIVE_PATH).exists())
+    {
+      Path(MODEL_ARCHIVE_PATH).delete()
+      println("[WARN] old archive deleted")
+    }
+
+    mr.storeModel(MODEL_PATH)
+    assert(new File(MODEL_PATH).exists)
     mr.model = null
 
     val storage = Storage()
-    storage.zipModel("testModel", "testModel.zip")
-    assert(new File("testModel.zip").exists)
+    storage.zipModel(MODEL_PATH, MODEL_ARCHIVE_PATH)
+    assert(new File(MODEL_ARCHIVE_PATH).exists)
 
-    storage.unzipModel("testModel.zip", "testModelUz")
-    mr.loadModel("testModelUz")
+    Path(MODEL_PATH).deleteRecursively()
+    println("[WARN] old model deleted")
+
+    storage.unzipModel(MODEL_ARCHIVE_PATH, MODEL_PATH)
+    mr.loadModel(MODEL_PATH)
     assert(mr.model != null)
+
+    Path(MODEL_PATH).deleteRecursively()
+    println("[WARN] model deleted, archive mantained")
   }
 
 

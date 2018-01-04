@@ -31,7 +31,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     //val configuration = ConfigFactory.load("BatchML")
 
-    val configuration = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
+    val configuration = ConfigFactory.parseFile(new File("/opt/conf/BatchML.conf"))
 
     SPARK_APPNAME = configuration.getString("bml.spark.app_name")
     SPARK_MASTER = configuration.getString("bml.spark.master")
