@@ -1,4 +1,4 @@
-package it.reply.pasquali.engine
+package it.reply.data.pasquali.engine
 
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.recommendation.{ALS, MatrixFactorizationModel, Rating}
@@ -6,8 +6,7 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
 import scala.reflect.io.File
-
-import sys.process._
+import scala.sys.process._
 
 case class MovieRecommender() {
 

@@ -1,10 +1,10 @@
 
-import it.reply.pasquali.engine.MovieRecommender
-import it.reply.pasquali.storage.Storage
+import it.reply.data.pasquali.Storage
+import it.reply.data.pasquali.engine.MovieRecommender
 import org.apache.spark.mllib.recommendation.Rating
 import org.scalatest._
-import sys.process._
 
+import sys.process._
 import scala.reflect.io.File
 
 class MRSpec
@@ -25,7 +25,6 @@ class MRSpec
 
   override def afterAll(): Unit = {
     super.afterAll()
-
   }
 
   "The movie recommender" must "be instantiated with given parameters" in {

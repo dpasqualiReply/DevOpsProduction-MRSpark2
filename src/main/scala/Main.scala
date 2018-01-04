@@ -1,6 +1,7 @@
 
-import it.reply.pasquali.engine.MovieRecommender
-import it.reply.pasquali.storage.Storage
+import com.typesafe.config.ConfigFactory
+import it.reply.data.pasquali.Storage
+import it.reply.data.pasquali.engine.MovieRecommender
 import org.apache.spark.mllib.recommendation.Rating
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.log4j.Logger
@@ -11,77 +12,105 @@ import scala.util.Try
 
 object Main {
 
-    def main(args: Array[String]): Unit = {
+  var SPARK_APPNAME = ""
+  var SPARK_MASTER = ""
 
-        val log = Logger.getLogger(getClass.getName)
+  var KUDU_ADDRESS = ""
+  var KUDU_PORT = ""
+  var KUDU_RATINGS_TABLE = ""
+  var KUDU_DATABASE = ""
 
-        log.info("***** Init Spark Session *****")
+  var MODEL_PATH = ""
+  var MODEL_ARCHIVE_PATH = ""
+  var TEST_FRACTION : Double = 0.0
+  var TRAIN_FRACTION : Double = 0.0
 
-        val spark = SparkSession.builder()
-          .appName("batch machine learning")
-          .master("local[*]")
-          .getOrCreate()
 
-        log.info("***** Take Spark Context from Spark Session *****")
+  def main(args: Array[String]): Unit = {
+    val configuration = ConfigFactory.load("BatchML")
 
-        val sc = spark.sparkContext
+    SPARK_APPNAME = configuration.getString("bml.spark.app_name")
+    SPARK_MASTER = configuration.getString("bml.spark.master")
 
-        log.info("***** Init Storage connector *****")
+    MODEL_PATH = configuration.getString("bml.recommender.model_path")
+    MODEL_ARCHIVE_PATH = configuration.getString("bml.recommender.model_archive_path")
+    TEST_FRACTION = configuration.getDouble("bml.recommender.test_fraction")
+    TRAIN_FRACTION = configuration.getDouble("bml.recommender.train_fraction")
 
-        val storage = Storage()
-        storage.init()
+    KUDU_ADDRESS = configuration.getString("bml.kudu.address")
+    KUDU_PORT = configuration.getString("bml.kudu.port")
+    KUDU_RATINGS_TABLE = configuration.getString("bml.kudu.ratings_table")
+    KUDU_DATABASE = configuration.getString("bml.kudu.database")
 
-        log.info("***** Init Kudu Datamart Connection *****")
+    val log = Logger.getLogger(getClass.getName)
 
-        storage.initKudu("cloudera-vm.c.endless-upgrade-187216.internal", "7051")
+    log.info("***** Init Spark Session *****")
 
-        log.info("***** Read ratings table as RDD *****")
+    val spark = SparkSession.builder()
+      .appName(SPARK_APPNAME)
+      .master(SPARK_MASTER)
+      .getOrCreate()
 
-        val ratings = storage.readKuduTable("datamart.ratings").rdd
+    log.info("***** Take Spark Context from Spark Session *****")
 
-        log.info("***** Split it in train set and test set *****")
+    val sc = spark.sparkContext
 
-        val Array(rawTrain, rawTest) = ratings.randomSplit(Array(0.8, 0.2))
+    log.info("***** Init Storage connector *****")
 
-        log.info("***** Remap to Rating(user, movie, rate) *****")
+    val storage = Storage()
+      .init(SPARK_MASTER, SPARK_APPNAME, false)
 
-        val testSet = rawTest.map{ case Row(userID, movieID, rating, time) =>
-            Rating(userID.asInstanceOf[Long].toInt,
-                movieID.asInstanceOf[Long].toInt,
-                rating.asInstanceOf[Double])}
+    log.info("***** Init Kudu Datamart Connection *****")
 
-        val trainSet = rawTrain.map{ case Row(userID, movieID, rating, time) =>
-            Rating(userID.asInstanceOf[Long].toInt,
-                movieID.asInstanceOf[Long].toInt,
-                rating.asInstanceOf[Double])}
+    storage.initKudu(KUDU_ADDRESS, KUDU_PORT)
 
-        log.info("***** Estimate model with ALS *****")
+    log.info("***** Read ratings table as RDD *****")
 
-        val mr = MovieRecommender()
-          .initSpark(spark)
-          .trainModel(trainSet, 10, 10, 0.1)
+    val ratings = storage.readKuduTable(s"${KUDU_DATABASE}.${KUDU_RATINGS_TABLE}").rdd
 
-        log.info("***** Evaluate Model *****")
+    log.info("***** Split it in train set and test set *****")
 
-        val mse = mr.evaluateModel_MSE(testSet)
+    val Array(rawTrain, rawTest) = ratings.randomSplit(Array(TRAIN_FRACTION, TEST_FRACTION))
 
-        log.info(s"***** Actual MSE is ${mse} *****")
-        println(s"Actual MSE is ${mse}")
+    log.info("***** Remap to Rating(user, movie, rate) *****")
 
-        log.info("***** Store model *****")
+    val testSet = rawTest.map{ case Row(userID, movieID, rating, time) =>
+      Rating(userID.asInstanceOf[Long].toInt,
+        movieID.asInstanceOf[Long].toInt,
+        rating.asInstanceOf[Double])}
 
-        mr.storeModel("out/m20Model")
+    val trainSet = rawTrain.map{ case Row(userID, movieID, rating, time) =>
+      Rating(userID.asInstanceOf[Long].toInt,
+        movieID.asInstanceOf[Long].toInt,
+        rating.asInstanceOf[Double])}
 
-        log.info("***** Zip it to deploy *****")
+    log.info("***** Estimate model with ALS *****")
 
-        storage.zipModel("out/m20Model", "out/m20Model.zip")
+    val mr = MovieRecommender()
+      .initSpark(spark)
+      .trainModel(trainSet, 10, 10, 0.1)
 
-        log.info("***** Drop model folder *****")
+    log.info("***** Evaluate Model *****")
 
-        Try(Path("out/m20Model").deleteRecursively())
+    val mse = mr.evaluateModel_MSE(testSet)
 
-        log.info("***** Close Spark Session *****")
+    log.info(s"***** Actual MSE is ${mse} *****")
+    println(s"Actual MSE is ${mse}")
 
-        spark.stop()
-    }
+    log.info("***** Store model *****")
+
+    mr.storeModel(MODEL_PATH)
+
+    log.info("***** Zip it to deploy *****")
+
+    storage.zipModel(MODEL_PATH, MODEL_ARCHIVE_PATH)
+
+    log.info("***** Drop model folder *****")
+
+    Try(Path(MODEL_PATH).deleteRecursively())
+
+    log.info("***** Close Spark Session *****")
+
+    spark.stop()
+  }
 }

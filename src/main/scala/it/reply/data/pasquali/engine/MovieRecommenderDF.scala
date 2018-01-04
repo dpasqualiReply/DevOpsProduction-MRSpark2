@@ -1,4 +1,4 @@
-package it.reply.pasquali.engine
+package it.reply.data.pasquali.engine
 
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.recommendation.{ALS, ALSModel}
