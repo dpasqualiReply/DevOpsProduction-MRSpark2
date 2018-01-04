@@ -25,7 +25,7 @@ class MRSpec
     import org.apache.hadoop.security.UserGroupInformation
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"))
 
-    config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
+    config = ConfigFactory.parseFile(new File("conf/BatchML_staging.conf"))
     println(config)
 
   }
@@ -35,6 +35,9 @@ class MRSpec
   }
 
   "The movie recommender" must "be instantiated with given parameters" in {
+
+    config = ConfigFactory.parseFile(new File("conf/BatchML_staging.conf"))
+    println(config)
 
     val SPARK_APPNAME = config.getString("bml.spark.app_name")
     val SPARK_MASTER = config.getString("bml.spark.master")
