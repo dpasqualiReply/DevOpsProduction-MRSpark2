@@ -8,7 +8,6 @@ import org.apache.spark.mllib.recommendation.Rating
 import org.scalatest._
 
 import scala.reflect.io.Path
-import sys.process._
 
 class MRSpec
   extends FlatSpec
@@ -27,6 +26,7 @@ class MRSpec
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"))
 
     config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
+    println(config)
 
   }
 
@@ -110,6 +110,9 @@ class MRSpec
   }
 
   it should "can be saved in zip format and retrieved" in {
+
+    config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
+    println(config)
 
     val MODEL_PATH = config.getString("bml.recommender.model_path")
     val MODEL_ARCHIVE_PATH = config.getString("bml.recommender.model_archive_path")
