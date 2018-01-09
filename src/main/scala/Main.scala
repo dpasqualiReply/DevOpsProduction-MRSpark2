@@ -27,11 +27,14 @@ object Main {
   var TEST_FRACTION : Double = 0.0
   var TRAIN_FRACTION : Double = 0.0
 
+  var CONF_DIR = ""
+  var CONFIG_FILE = "BatchML.conf"
 
   def main(args: Array[String]): Unit = {
     //val configuration = ConfigFactory.load("BatchML")
 
-    val configuration = ConfigFactory.parseFile(new File("/opt/conf/BatchML.conf"))
+    CONF_DIR = scala.util.Properties.envOrElse("DEVOPS_CONF_DIR", "conf")
+    val configuration = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
 
     SPARK_APPNAME = configuration.getString("bml.spark.app_name")
     SPARK_MASTER = configuration.getString("bml.spark.master")

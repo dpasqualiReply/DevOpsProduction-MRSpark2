@@ -1,6 +1,7 @@
 
 import java.io.File
 
+import Main.{CONFIG_FILE, CONF_DIR}
 import com.typesafe.config._
 import it.reply.data.pasquali.Storage
 import it.reply.data.pasquali.engine.MovieRecommender
@@ -20,12 +21,16 @@ class MRSpec
   var mr : MovieRecommender = null
   var config : Config = null
 
+  var CONF_DIR = ""
+  var CONFIG_FILE = "BatchML_staging.conf"
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     import org.apache.hadoop.security.UserGroupInformation
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"))
 
-    config = ConfigFactory.parseFile(new File("conf/BatchML_staging.conf"))
+    CONF_DIR = scala.util.Properties.envOrElse("DEVOPS_CONF_DIR", "conf")
+    config = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
     println(config)
 
   }
@@ -36,17 +41,9 @@ class MRSpec
 
   "The movie recommender" must "be instantiated with given parameters" in {
 
-    config = ConfigFactory.parseFile(new File("conf/BatchML_staging.conf"))
-    println(config)
 
     val SPARK_APPNAME = config.getString("bml.spark.app_name")
     val SPARK_MASTER = config.getString("bml.spark.master")
-
-    //val config = ConfigFactory.load("BatchML")
-
-    println("\n\n")
-    println(config)
-    println("\n\n")
 
     mr = MovieRecommender().initSpark(SPARK_APPNAME, SPARK_MASTER)
 
@@ -113,9 +110,6 @@ class MRSpec
   }
 
   it should "can be saved in zip format and retrieved" in {
-
-    config = ConfigFactory.parseFile(new File("/opt/conf/BatchML_staging.conf"))
-    println(config)
 
     val MODEL_PATH = config.getString("bml.recommender.model_path")
     val MODEL_ARCHIVE_PATH = config.getString("bml.recommender.model_archive_path")
