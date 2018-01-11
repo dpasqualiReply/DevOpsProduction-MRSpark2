@@ -21,8 +21,8 @@ pipeline {
     }
     stage('Build') {
       steps {
-        sh 'sbt clean compile package'
-        archiveArtifacts 'target/*/*.jar'
+        sh 'sbt clean compile package assembly'
+        archiveArtifacts 'target/scala-*/*.jar'
       }
     }
     stage('Deploy') {
