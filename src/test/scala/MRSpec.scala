@@ -1,10 +1,9 @@
 
 import java.io.File
 
-import Main.{CONFIG_FILE, CONF_DIR}
 import com.typesafe.config._
-import it.reply.data.pasquali.Storage
 import it.reply.data.pasquali.engine.MovieRecommender
+import it.reply.data.pasquali.storage.Storage
 import org.apache.spark.mllib.recommendation.Rating
 import org.scalatest._
 

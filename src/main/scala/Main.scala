@@ -2,8 +2,8 @@
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
-import it.reply.data.pasquali.Storage
 import it.reply.data.pasquali.engine.MovieRecommender
+import it.reply.data.pasquali.storage.Storage
 import org.apache.spark.mllib.recommendation.Rating
 import org.apache.spark.sql.{Row, SparkSession}
 import org.apache.log4j.Logger
