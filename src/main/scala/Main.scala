@@ -30,6 +30,8 @@ object Main {
   var CONF_DIR = ""
   var CONFIG_FILE = "BatchML.conf"
 
+  var KUDU_TABLE_BASE = ""
+
   def main(args: Array[String]): Unit = {
     //val configuration = ConfigFactory.load("BatchML")
 
@@ -48,6 +50,7 @@ object Main {
     KUDU_PORT = configuration.getString("bml.kudu.port")
     KUDU_RATINGS_TABLE = configuration.getString("bml.kudu.ratings_table")
     KUDU_DATABASE = configuration.getString("bml.kudu.database")
+    KUDU_TABLE_BASE = configuration.getString("bml.kudu.table_base")
 
     val log = Logger.getLogger(getClass.getName)
 
@@ -69,7 +72,7 @@ object Main {
 
     log.info("***** Init Kudu Datamart Connection *****")
 
-    storage.initKudu(KUDU_ADDRESS, KUDU_PORT)
+    storage.initKudu(KUDU_ADDRESS, KUDU_PORT, KUDU_TABLE_BASE)
 
     log.info("***** Read ratings table as RDD *****")
 
