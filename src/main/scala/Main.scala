@@ -121,6 +121,8 @@ object Main {
 
     log.info("***** Close Spark Session *****")
 
+    println("BATCH ML PROCESS DONE")
+
     spark.stop()
   }
 }
