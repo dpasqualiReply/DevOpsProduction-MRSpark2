@@ -33,10 +33,12 @@ object Main {
   var KUDU_TABLE_BASE = ""
 
   def main(args: Array[String]): Unit = {
-    //val configuration = ConfigFactory.load("BatchML")
 
-    CONF_DIR = scala.util.Properties.envOrElse("DEVOPS_CONF_DIR", "conf")
-    val configuration = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
+    //CONF_DIR = scala.util.Properties.envOrElse("DEVOPS_CONF_DIR", "conf")
+    CONF_DIR = "conf"
+
+    //val configuration = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
+    val configuration = ConfigFactory.load()
 
     SPARK_APPNAME = configuration.getString("bml.spark.app_name")
     SPARK_MASTER = configuration.getString("bml.spark.master")

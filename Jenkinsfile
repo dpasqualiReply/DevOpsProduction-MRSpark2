@@ -29,6 +29,7 @@ pipeline {
       steps {
         sh 'sudo cp target/*/*.jar /opt/deploy/mrSpark2'
         sh 'sudo cp conf/* /opt/deploy/mrSpark2'
+        sh 'sudo cp target/*/*.jar /opt/staging/IntegrationStagingProject/lib'
       }
     }
   }
