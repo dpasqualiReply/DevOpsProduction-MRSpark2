@@ -115,12 +115,12 @@ object Main {
 
     log.info("***** Remap to Rating(user, movie, rate) *****")
 
-    val testSet = rawTest.map{ case Row(userID, movieID, rating, time) =>
+    val testSet = rawTest.map{ case Row(id, userID, movieID, rating, time) =>
       Rating(userID.asInstanceOf[Long].toInt,
         movieID.asInstanceOf[Long].toInt,
         rating.asInstanceOf[Double])}
 
-    val trainSet = rawTrain.map{ case Row(userID, movieID, rating, time) =>
+    val trainSet = rawTrain.map{ case Row(id, userID, movieID, rating, time) =>
       Rating(userID.asInstanceOf[Long].toInt,
         movieID.asInstanceOf[Long].toInt,
         rating.asInstanceOf[Double])}
