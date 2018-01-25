@@ -86,34 +86,34 @@ class MRSpec
 
     val rawTrain = mr.sc.parallelize(Seq(
 
-      (1, 1, 5, "time"),
-      (1, 2, 5, "time"),
+      (1 ,1, 1, 5, "time"),
+      (2 ,1, 2, 5, "time"),
 
-      (2, 1, 5, "time"),
-      (2, 3, 5, "time"),
-      (2, 4, 5, "time"),
-      (2, 5, 0, "time"),
-      (2, 6, 5, "time"),
+      (3 ,2, 1, 5, "time"),
+      (4 ,2, 3, 5, "time"),
+      (5 ,2, 4, 5, "time"),
+      (6 ,2, 5, 0, "time"),
+      (7 ,2, 6, 5, "time"),
 
-      (4, 1, 5, "time"),
-      (4, 2, 5, "time"),
-      (4, 4, 5, "time"),
-      (4, 5, 0, "time"),
-      (4, 6, 5, "time"),
+      (8 ,4, 1, 5, "time"),
+      (9 ,4, 2, 5, "time"),
+      (10 ,4, 4, 5, "time"),
+      (11 ,4, 5, 0, "time"),
+      (12 ,4, 6, 5, "time"),
 
-      (5, 1, 5, "time"),
-      (5, 2, 5, "time"),
-      (5, 4, 5, "time"),
-      (5, 5, 0, "time"),
-      (5, 6, 5, "time"),
+      (13 ,5, 1, 5, "time"),
+      (14 ,5, 2, 5, "time"),
+      (15 ,5, 4, 5, "time"),
+      (16 ,5, 5, 0, "time"),
+      (17 ,5, 6, 5, "time"),
 
-      (6, 1, 5, "time"),
-      (6, 3, 5, "time"),
-      (6, 4, 5, "time"),
-      (6, 5, 0, "time")
+      (18 ,6, 1, 5, "time"),
+      (19 ,6, 3, 5, "time"),
+      (20 ,6, 4, 5, "time"),
+      (21 ,6, 5, 0, "time")
     ))
 
-    val trainSet = rawTrain.map{ case (userID, movieID, rating, time) =>
+    val trainSet = rawTrain.map{ case (id, userID, movieID, rating, time) =>
       Rating(userID, movieID, rating.toDouble)}
 
     mr.trainModel(trainSet, 10, 10, 0.1)
