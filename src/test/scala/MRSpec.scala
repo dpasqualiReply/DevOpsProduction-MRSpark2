@@ -2,6 +2,8 @@
 import java.io.File
 
 import com.typesafe.config._
+import io.prometheus.client.{CollectorRegistry, Gauge}
+import io.prometheus.client.exporter.PushGateway
 import it.reply.data.pasquali.engine.MovieRecommender
 import it.reply.data.pasquali.storage.Storage
 import org.apache.spark.mllib.recommendation.Rating
@@ -23,14 +25,40 @@ class MRSpec
   var CONF_DIR = ""
   var CONFIG_FILE = "BatchML_staging.conf"
 
+  var gaugeDuration : Gauge = null
+  var pushGateway : PushGateway = null
+  var JOB_NAME = ""
+  var ENV = ""
+  val registry = new CollectorRegistry
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     import org.apache.hadoop.security.UserGroupInformation
     UserGroupInformation.setLoginUser(UserGroupInformation.createRemoteUser("root"))
 
-    CONF_DIR = scala.util.Properties.envOrElse("DEVOPS_CONF_DIR", "conf")
+    CONF_DIR = "conf"
     config = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
     println(config)
+
+    //****************************************************************************
+
+    ENV = config.getString("bml.metrics.environment")
+    JOB_NAME = config.getString("bml.metrics.job_name")
+
+    val GATEWAY_ADDR = config.getString("bml.metrics.gateway.address")
+    val GATEWAY_PORT = config.getString("bml.metrics.gateway.port")
+
+    val LABEL_PROCESS_DURATION = s"${config.getString("bml.metrics.labels.process_duration")}"
+
+    pushGateway = new PushGateway(s"$GATEWAY_ADDR:$GATEWAY_PORT")
+
+    // *******************************************************************************
+
+    gaugeDuration = Gauge.build().name(LABEL_PROCESS_DURATION)
+      .help("Duration of Batch ML process").register(registry)
+
+
+    //****************************************************************************
 
   }
 
@@ -53,6 +81,8 @@ class MRSpec
   }
 
   it must "compute a valid model given input ratings" in {
+
+    val timer = gaugeDuration.startTimer()
 
     val rawTrain = mr.sc.parallelize(Seq(
 
@@ -89,6 +119,14 @@ class MRSpec
     mr.trainModel(trainSet, 10, 10, 0.1)
 
     assert(mr.model != null)
+
+    timer.setDuration()
+
+    try{
+      pushGateway.push(registry, s"${ENV}_${JOB_NAME}")
+    }catch{
+      case _ : Exception => println("Unable to reach Metric Pushgateway")
+    }
   }
 
   "The computed model" should

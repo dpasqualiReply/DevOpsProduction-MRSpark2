@@ -2,6 +2,8 @@
 import java.io.File
 
 import com.typesafe.config.ConfigFactory
+import io.prometheus.client.{CollectorRegistry, Gauge}
+import io.prometheus.client.exporter.PushGateway
 import it.reply.data.pasquali.engine.MovieRecommender
 import it.reply.data.pasquali.storage.Storage
 import org.apache.spark.mllib.recommendation.Rating
@@ -14,45 +16,70 @@ import scala.util.Try
 
 object Main {
 
-  var SPARK_APPNAME = ""
-  var SPARK_MASTER = ""
-
-  var KUDU_ADDRESS = ""
-  var KUDU_PORT = ""
-  var KUDU_RATINGS_TABLE = ""
-  var KUDU_DATABASE = ""
-
-  var MODEL_PATH = ""
-  var MODEL_ARCHIVE_PATH = ""
-  var TEST_FRACTION : Double = 0.0
-  var TRAIN_FRACTION : Double = 0.0
-
-  var CONF_DIR = ""
-  var CONFIG_FILE = "BatchML.conf"
-
-  var KUDU_TABLE_BASE = ""
-
   def main(args: Array[String]): Unit = {
 
     //CONF_DIR = scala.util.Properties.envOrElse("DEVOPS_CONF_DIR", "conf")
-    CONF_DIR = "conf"
+    val CONF_DIR = "conf"
 
     //val configuration = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
     val configuration = ConfigFactory.load()
 
-    SPARK_APPNAME = configuration.getString("bml.spark.app_name")
-    SPARK_MASTER = configuration.getString("bml.spark.master")
+    val SPARK_APPNAME = configuration.getString("bml.spark.app_name")
+    val SPARK_MASTER = configuration.getString("bml.spark.master")
 
-    MODEL_PATH = configuration.getString("bml.recommender.model_path")
-    MODEL_ARCHIVE_PATH = configuration.getString("bml.recommender.model_archive_path")
-    TEST_FRACTION = configuration.getDouble("bml.recommender.test_fraction")
-    TRAIN_FRACTION = configuration.getDouble("bml.recommender.train_fraction")
+    val MODEL_PATH = configuration.getString("bml.recommender.model_path")
+    val MODEL_ARCHIVE_PATH = configuration.getString("bml.recommender.model_archive_path")
+    val TEST_FRACTION = configuration.getDouble("bml.recommender.test_fraction")
+    val TRAIN_FRACTION = configuration.getDouble("bml.recommender.train_fraction")
 
-    KUDU_ADDRESS = configuration.getString("bml.kudu.address")
-    KUDU_PORT = configuration.getString("bml.kudu.port")
-    KUDU_RATINGS_TABLE = configuration.getString("bml.kudu.ratings_table")
-    KUDU_DATABASE = configuration.getString("bml.kudu.database")
-    KUDU_TABLE_BASE = configuration.getString("bml.kudu.table_base")
+    val KUDU_ADDRESS = configuration.getString("bml.kudu.address")
+    val KUDU_PORT = configuration.getString("bml.kudu.port")
+    val KUDU_RATINGS_TABLE = configuration.getString("bml.kudu.ratings_table")
+    val KUDU_DATABASE = configuration.getString("bml.kudu.database")
+    val KUDU_TABLE_BASE = configuration.getString("bml.kudu.table_base")
+
+    //****************************************************************************
+
+    val ENV = configuration.getString("bml.metrics.environment")
+    val JOB_NAME = configuration.getString("bml.metrics.job_name")
+
+    val GATEWAY_ADDR = configuration.getString("bml.metrics.gateway.address")
+    val GATEWAY_PORT = configuration.getString("bml.metrics.gateway.port")
+
+    val LABEL_RATINGS_NUMBER = s"${configuration.getString("bml.metrics.labels.ratings_number")}"
+    val LABEL_USERS_NUMBER = s"${configuration.getString("bml.metrics.users_number")}"
+    val LABEL_MOVIES_NUMBER = s"${configuration.getString("bml.metrics.labels.movies_number")}"
+
+    val LABEL_MODEL_SIZE = s"${configuration.getString("bml.metrics.labels.model_size")}"
+    val LABEL_MSE = s"${configuration.getString("bml.metrics.labels.mse")}"
+
+    val LABEL_PROCESS_DURATION = s"${configuration.getString("bml.metrics.labels.process_duration")}"
+
+    val pushGateway : PushGateway = new PushGateway(s"$GATEWAY_ADDR:$GATEWAY_PORT")
+    val registry = new CollectorRegistry
+
+    // *******************************************************************************
+
+    val gaugeRatingsNumber : Gauge = Gauge.build().name(LABEL_RATINGS_NUMBER)
+      .help("\"Number of ratings in the model\"").register(registry)
+
+    val gaugeUsersNumber : Gauge = Gauge.build().name(LABEL_USERS_NUMBER)
+      .help("Number of users in the model").register(registry)
+
+    val gaugeMoviesNumber : Gauge = Gauge.build().name(LABEL_MOVIES_NUMBER)
+      .help("Number of movies in the model").register(registry)
+
+    val gaugeModelSize : Gauge = Gauge.build().name(LABEL_MODEL_SIZE)
+      .help("Size of the zipped model").register(registry)
+
+    val gaugeMSE : Gauge = Gauge.build().name(LABEL_MSE)
+      .help("Minimum Squared Error of the model").register(registry)
+
+    val gaugeDuration : Gauge = Gauge.build().name(LABEL_PROCESS_DURATION)
+      .help("Duration of Batch ML process").register(registry)
+
+
+    //****************************************************************************
 
     val log = Logger.getLogger(getClass.getName)
 
@@ -75,6 +102,8 @@ object Main {
     log.info("***** Init Kudu Datamart Connection *****")
 
     storage.initKudu(KUDU_ADDRESS, KUDU_PORT, KUDU_TABLE_BASE)
+
+    val timer = gaugeDuration.startTimer()
 
     log.info("***** Read ratings table as RDD *****")
 
@@ -121,10 +150,20 @@ object Main {
 
     Try(Path(MODEL_PATH).deleteRecursively())
 
+    timer.setDuration()
+
+    gaugeRatingsNumber.set(ratings.count())
+    gaugeMoviesNumber.set(mr.model.productFeatures.count())
+    gaugeUsersNumber.set(mr.model.userFeatures.count())
+    gaugeMSE.set(mse)
+    gaugeModelSize.set(new File(MODEL_ARCHIVE_PATH).length)
+
+    pushGateway.push(registry, s"${ENV}_${JOB_NAME}")
+
     log.info("***** Close Spark Session *****")
 
-    println("BATCH ML PROCESS DONE")
-
     spark.stop()
+
+    println("BATCH ML PROCESS DONE")
   }
 }
