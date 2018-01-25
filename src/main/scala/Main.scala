@@ -47,7 +47,7 @@ object Main {
     val GATEWAY_PORT = configuration.getString("bml.metrics.gateway.port")
 
     val LABEL_RATINGS_NUMBER = s"${configuration.getString("bml.metrics.labels.ratings_number")}"
-    val LABEL_USERS_NUMBER = s"${configuration.getString("bml.metrics.users_number")}"
+    val LABEL_USERS_NUMBER = s"${configuration.getString("bml.metrics.labels.users_number")}"
     val LABEL_MOVIES_NUMBER = s"${configuration.getString("bml.metrics.labels.movies_number")}"
 
     val LABEL_MODEL_SIZE = s"${configuration.getString("bml.metrics.labels.model_size")}"
