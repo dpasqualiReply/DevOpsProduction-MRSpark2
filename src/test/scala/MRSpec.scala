@@ -23,7 +23,7 @@ class MRSpec
   var config : Config = null
 
   var CONF_DIR = ""
-  var CONFIG_FILE = "BatchML_staging.conf"
+  var CONFIG_FILE = "BatchML_test.conf"
 
   var gaugeDuration : Gauge = null
   var pushGateway : PushGateway = null
@@ -38,6 +38,7 @@ class MRSpec
 
     CONF_DIR = "conf"
     config = ConfigFactory.parseFile(new File(s"${CONF_DIR}/${CONFIG_FILE}"))
+    print(s"${CONF_DIR}/${CONFIG_FILE}")
     println(config)
 
     //****************************************************************************
