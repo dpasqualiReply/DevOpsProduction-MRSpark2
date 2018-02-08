@@ -13,6 +13,10 @@ import org.apache.log4j.Logger
 import scala.reflect.io.Path
 import scala.util.Try
 
+/*
+Run with
+spark-submit --master local --class Main MRSpark2-assembly-0.1.jar [rank iter lambda]
+ */
 
 object Main {
 
@@ -37,6 +41,18 @@ object Main {
     val KUDU_RATINGS_TABLE = configuration.getString("bml.kudu.ratings_table")
     val KUDU_DATABASE = configuration.getString("bml.kudu.database")
     val KUDU_TABLE_BASE = configuration.getString("bml.kudu.table_base")
+
+    var rank = 10
+    var loops = 10
+    var lambda = 0.1
+
+    if(args.nonEmpty)
+    {
+      rank = args(0).toInt
+      loops = args(1).toInt
+      lambda = args(2).toDouble
+    }
+
 
     //****************************************************************************
 
@@ -80,6 +96,7 @@ object Main {
 
 
     //****************************************************************************
+
 
     val log = Logger.getLogger(getClass.getName)
 
@@ -127,9 +144,13 @@ object Main {
 
     log.info("***** Estimate model with ALS *****")
 
+    log.info(s"***** RANK = $rank *****")
+    log.info(s"***** ITERATIONS = $loops *****")
+    log.info(s"***** REGRESSION PARAM = $lambda *****")
+
     val mr = MovieRecommender()
       .initSpark(spark)
-      .trainModel(trainSet, 10, 10, 0.1)
+      .trainModel(trainSet, rank, loops, lambda)
 
     log.info("***** Evaluate Model *****")
 
