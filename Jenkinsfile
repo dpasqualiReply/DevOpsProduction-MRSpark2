@@ -21,6 +21,7 @@ pipeline {
       steps {
         sh 'sbt clean test'
         archiveArtifacts 'target/test-reports/*.xml'
+        junit(testResults: 'target/test-reports/MRSpec.xml', allowEmptyResults: true)
       }
     }
     stage('Build') {
@@ -39,6 +40,7 @@ pipeline {
     stage('Integration Tests') {
       steps {
         sh 'cd /opt/staging/IntegrationStagingProject/ && sbt clean test'
+        junit(testResults: '/opt/staging/IntegrationStagingProject/target/test-reports/*.xml', allowEmptyResults: true)
       }
     }
     stage('Deploy ?') {
@@ -51,7 +53,7 @@ pipeline {
           commitMessage = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
           message += " Commit by <@${author}> (${author}): ``` ${commitMessage} ``` "
           message += "--------------------------------------------------------------"
-          message += "\nThe new Batch ML commit pass Unit and Integration tests"
+          message += "\nThe new MRSpark2 commit pass Unit and Integration tests"
           message += "\nThis session will be available for 60 second, make a CHOICE!"
           message += "\nPlease <${env.RUN_DISPLAY_URL}|Manual Deploy> it if you want!"
           color = '#36ABCC'
@@ -84,7 +86,7 @@ pipeline {
       script {
         header = "Job <${env.JOB_URL}|${env.JOB_NAME}> <${env.JOB_DISPLAY_URL}|(Blue)>"
         header += " build <${env.BUILD_URL}|${env.BUILD_DISPLAY_NAME}> <${env.RUN_DISPLAY_URL}|(Blue)>:"
-        message = "${header}\n :smiley: New Batch ETL release deployed in Production"
+        message = "${header}\n :smiley: New Batch ML release deployed in Production"
 
         author = sh(script: "git log -1 --pretty=%an", returnStdout: true).trim()
         commitMessage = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
